@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- SEO Meta Tags -->
+  <title>AgroLink — Smart Agriculture Consultation Platform</title>
+  <meta name="description" content="AgroLink is a premium agriculture consultation management platform for professional agronomists. Manage farmers, plots, visits, routes, and analytics.">
+  <meta name="keywords" content="agriculture, farming, consultation, agronomy, pomegranate, crop management, farm visits">
+  <meta name="author" content="AgroLink">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="AgroLink — Smart Agriculture Consultation">
+  <meta property="og:description" content="Enterprise-grade agriculture management platform for professional agronomists.">
+  <meta property="og:type" content="website">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AgroLink">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Google Fonts preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Loading styles -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #F5F6FA;
+      overflow: hidden;
+    }
+    
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .loading-logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #2E7D32, #4CAF50);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .loading-logo svg {
+      width: 36px;
+      height: 36px;
+      fill: white;
+    }
+    
+    .loading-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2E7D32;
+      margin-bottom: 8px;
+    }
+    
+    .loading-subtitle {
+      font-size: 14px;
+      color: #79747E;
+      margin-bottom: 32px;
+    }
+    
+    .loading-bar {
+      width: 200px;
+      height: 3px;
+      background: #E0E0E0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .loading-bar-inner {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #2E7D32, #4CAF50);
+      border-radius: 2px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading screen shown while Flutter initializes -->
+  <div class="loading-container" id="loading">
+    <div class="loading-logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/>
+      </svg>
+    </div>
+    <div class="loading-title">AgroLink</div>
+    <div class="loading-subtitle">Loading your agriculture platform...</div>
+    <div class="loading-bar">
+      <div class="loading-bar-inner"></div>
+    </div>
+  </div>
+  
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

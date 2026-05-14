@@ -1,0 +1,42 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated();
+    }
+    
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024; // 5MB max
+    }
+    
+    // Profile images
+    match /profile_images/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    // Plot images
+    match /plot_images/{plotId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidImage();
+    }
+    
+    // Visit images
+    match /visit_images/{visitId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidImage();
+    }
+    
+    // Disease images
+    match /disease_images/{imageId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidImage();
+    }
+  }
+}
