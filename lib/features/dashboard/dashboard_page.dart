@@ -9,6 +9,8 @@ import 'package:agrolink/core/utils/helpers.dart';
 import 'package:agrolink/services/firestore_service.dart';
 import 'package:agrolink/widgets/stat_card.dart';
 import 'package:agrolink/widgets/shimmer_loading.dart';
+import 'package:agrolink/features/auth/auth_controller.dart';
+import 'package:agrolink/features/analytics/analytics_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -16,6 +18,7 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final padding = Responsive.contentPadding(context);
+    final user = ref.watch(currentUserProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +26,7 @@ class DashboardPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Dashboard'),
-            Text('Welcome back, Doctor',
+            Text('Welcome back, ${user?.name.split(' ').first ?? "Doctor"}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textTertiary)),
           ],
         ),
@@ -33,25 +36,34 @@ class DashboardPage extends ConsumerWidget {
             onPressed: () => context.go('/notifications'),
           ),
           const SizedBox(width: 8),
-          const Padding(
-            padding: EdgeInsets.only(right: 16),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
             child: CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.primaryGreen,
-              child: Icon(Icons.person, color: Colors.white, size: 20),
+              child: Icon(user?.name.isNotEmpty ?? false ? 
+                null : Icons.person, 
+                color: Colors.white, 
+                size: 20),
             ),
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {},
+        onRefresh: () async {
+          if (user != null) {
+            ref.invalidate(analyticsSummaryProvider(user.uid));
+          }
+        },
         child: SingleChildScrollView(
           padding: padding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Stat Cards ──────────────────────────────
-              _buildStatCards(context, ref),
+              user != null
+                  ? _buildStatCards(context, ref, user.uid)
+                  : const ShimmerLoading(height: 100),
               const SizedBox(height: 24),
 
               // ── Charts Row ──────────────────────────────
@@ -105,37 +117,49 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCards(BuildContext context, WidgetRef ref) {
+  Widget _buildStatCards(BuildContext context, WidgetRef ref, String userId) {
     final columns = Responsive.value(context, mobile: 2, tablet: 3, desktop: 4, wide: 6);
+    final summary = ref.watch(analyticsSummaryProvider(userId));
 
-    final stats = [
-      _StatData('Total Farmers', '248', Icons.people_rounded, AppTheme.primaryGreen, '+12%'),
-      _StatData('Total Visits', '1,847', Icons.assignment_rounded, AppTheme.info, '+8%'),
-      _StatData('This Month', '156', Icons.calendar_today_rounded, AppTheme.accentAmber, '+23%'),
-      _StatData('Revenue', '₹4.2L', Icons.currency_rupee_rounded, AppTheme.success, '+15%'),
-      _StatData('Critical', '5', Icons.warning_rounded, AppTheme.error, '-2'),
-      _StatData('Active Routes', '3', Icons.route_rounded, AppTheme.earthBrown, ''),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: Responsive.value(context, mobile: 1.4, tablet: 1.5, desktop: 1.6),
+    return summary.when(
+      loading: () => const ShimmerLoading(height: 120),
+      error: (err, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Error loading stats: $err'),
+        ),
       ),
-      itemCount: stats.length,
-      itemBuilder: (context, index) {
-        final s = stats[index];
-        return StatCard(
-          title: s.title,
-          value: s.value,
-          icon: s.icon,
-          color: s.color,
-          trend: s.trend,
-        ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.2);
+      data: (analytics) {
+        final stats = [
+          _StatData('Total Farmers', analytics.totalFarmers.toString(), Icons.people_rounded, AppTheme.primaryGreen, ''),
+          _StatData('Total Plots', analytics.totalPlots.toString(), Icons.grass_rounded, AppTheme.accentAmber, ''),
+          _StatData('Total Visits', analytics.totalVisits.toString(), Icons.assignment_rounded, AppTheme.info, ''),
+          _StatData('This Month', analytics.monthlyVisits.toString(), Icons.calendar_today_rounded, AppTheme.primaryLight, ''),
+          _StatData('Critical', analytics.criticalCases.toString(), Icons.warning_rounded, AppTheme.error, ''),
+          _StatData('Upcoming', analytics.upcomingVisits.toString(), Icons.route_rounded, AppTheme.earthBrown, ''),
+        ];
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: Responsive.value(context, mobile: 1.4, tablet: 1.5, desktop: 1.6),
+          ),
+          itemCount: stats.length,
+          itemBuilder: (context, index) {
+            final s = stats[index];
+            return StatCard(
+              title: s.title,
+              value: s.value,
+              icon: s.icon,
+              color: s.color,
+              trend: s.trend,
+            ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.2);
+          },
+        );
       },
     );
   }
