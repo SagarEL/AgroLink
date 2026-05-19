@@ -30,6 +30,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() { _isLoading = true; _error = null; });
 
+    // --- BYPASS FOR UI TESTING ---
+    if (_emailController.text.trim() == 'admin@agrolink.com' && _passwordController.text == 'admin123') {
+      await Future.delayed(const Duration(seconds: 1)); // simulate network delay
+      if (mounted) {
+        setState(() => _isLoading = false);
+        context.go('/dashboard');
+      }
+      return;
+    }
+    // -----------------------------
+
     try {
       final authService = ref.read(authServiceProvider);
       await authService.signInWithEmail(

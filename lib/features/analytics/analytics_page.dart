@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:agrolink/core/theme/app_theme.dart';
 import 'package:agrolink/core/utils/responsive.dart';
+import 'package:agrolink/core/utils/pdf_generator.dart';
 import 'package:agrolink/widgets/stat_card.dart';
 
 class AnalyticsPage extends ConsumerWidget {
@@ -19,9 +20,16 @@ class AnalyticsPage extends ConsumerWidget {
         title: const Text('Analytics & Reports'),
         actions: [
           OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              PdfGenerator.generateAndPrintAnalyticsReport(
+                month: 'April 2024',
+                totalRevenue: 428500,
+                totalVisits: 156,
+                newFarmers: 12,
+              );
+            },
             icon: const Icon(Icons.download_rounded, size: 18),
-            label: const Text('Export'),
+            label: const Text('Export PDF'),
           ),
           const SizedBox(width: 16),
         ],

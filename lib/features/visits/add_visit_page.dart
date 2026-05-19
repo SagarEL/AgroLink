@@ -7,6 +7,9 @@ import 'package:agrolink/core/constants/app_constants.dart';
 import 'package:agrolink/services/firestore_service.dart';
 import 'package:agrolink/models/visit_model.dart';
 import 'package:agrolink/models/farmer_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class AddVisitPage extends ConsumerStatefulWidget {
   const AddVisitPage({super.key});
@@ -31,6 +34,9 @@ class _AddVisitPageState extends ConsumerState<AddVisitPage> {
   final List<String> _medicines = [];
   final _medicineController = TextEditingController();
   bool _isLoading = false;
+  
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _selectedImages = [];
 
   @override
   void dispose() {
@@ -50,6 +56,9 @@ class _AddVisitPageState extends ConsumerState<AddVisitPage> {
     setState(() => _isLoading = true);
 
     try {
+      // In a real app, upload _selectedImages to Firebase Storage here and get URLs
+      final List<String> photoUrls = []; // Placeholder for uploaded image URLs
+
       final visit = VisitModel(
         visitId: '',
         farmerId: _selectedFarmerId!,
@@ -66,6 +75,7 @@ class _AddVisitPageState extends ConsumerState<AddVisitPage> {
         severity: _severity,
         followUpRequired: _followUpRequired,
         consultationFee: double.tryParse(_feeController.text),
+        photos: photoUrls,
         createdAt: DateTime.now(),
       );
 
@@ -78,6 +88,32 @@ class _AddVisitPageState extends ConsumerState<AddVisitPage> {
       if (mounted) AppHelpers.showError(context, 'Error: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(images);
+        });
+      }
+    } catch (e) {
+      if (mounted) AppHelpers.showError(context, 'Error picking images: $e');
+    }
+  }
+  
+  Future<void> _takePhoto() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image != null) {
+        setState(() {
+          _selectedImages.add(image);
+        });
+      }
+    } catch (e) {
+      if (mounted) AppHelpers.showError(context, 'Error taking photo: $e');
     }
   }
 
@@ -233,6 +269,70 @@ class _AddVisitPageState extends ConsumerState<AddVisitPage> {
                         prefixIcon: Icon(Icons.eco_outlined), alignLabelWithHint: true),
                     ),
                   ]).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+                  const SizedBox(height: 20),
+
+                  // Photos Section
+                  _section('Photos & Evidence', [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _takePhoto,
+                            icon: const Icon(Icons.camera_alt_outlined),
+                            label: const Text('Take Photo'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _pickImages,
+                            icon: const Icon(Icons.photo_library_outlined),
+                            label: const Text('Upload Gallery'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_selectedImages.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _selectedImages.length,
+                          itemBuilder: (context, index) {
+                            final image = _selectedImages[index];
+                            return Stack(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(right: 12),
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(
+                                      image: kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path)) as ImageProvider,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4, right: 16,
+                                  child: InkWell(
+                                    onTap: () => setState(() => _selectedImages.removeAt(index)),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                      child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ]).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
                   const SizedBox(height: 20),
 
                   // Notes & Follow-up
